@@ -19,25 +19,31 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class ImageServlet extends HttpServlet {
 
-	private final String IMAGE_KEY_PARAM = "iid";
+        /**
+         * The servlet context attribute key for the image store.
+         */
+        public static final String IMAGE_STORE_ATTR_KEY = "image-store";
+	
+        private final String IMAGE_KEY_PARAM = "iid";
 	private ImageStore store;
 	
 	@Override
 	public void init(ServletConfig config) throws ServletException {
-		super.init(config);
-		store = new DefaultImageStore();
+	    super.init(config);
+	    store = new DefaultImageStore();
+            config.getServletContext().setAttribute(IMAGE_STORE_ATTR_KEY, store);
 	}
 
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		
-		String imageKey = request.getParameter(IMAGE_KEY_PARAM);
+	    String imageKey = request.getParameter(IMAGE_KEY_PARAM);
 	    if (imageKey == null || !store.contains(imageKey)) {
 	    	return;
 	    }
 	    
 	    StoredImage image = store.retrieveImage(imageKey);
 	    response.setContentType(image.getMimeType());
-	    response.setContentLength((int)imageKey.length());
+	    response.setContentLength(image.getImageBytes().length);
 
 	    OutputStream out = response.getOutputStream();
 	    out.write(image.getImageBytes());
@@ -45,7 +51,7 @@ public class ImageServlet extends HttpServlet {
 	}
 	
 	public void addImageToStore(String key, StoredImage image) {
-		store.storeImage(key, image);
+	    store.storeImage(key, image);
 	}
 
 }
